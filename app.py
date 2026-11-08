@@ -21,6 +21,8 @@ st.write("Compare **SimpleRNN**, **LSTM**, and **GRU** on your review in real ti
 VOCAB_SIZE  = 10000
 MAX_LENGTH  = 200
 BASE_DIR    = os.path.dirname(__file__)
+MODELS_DIR  = os.path.join(BASE_DIR, "models")
+ASSETS_DIR  = os.path.join(BASE_DIR, "assets")
 
 MODEL_FILES = {
     "SimpleRNN": "rnn_sentiment.keras",
@@ -40,7 +42,11 @@ MODEL_INFO = {
 def load_all_models():
     models = {}
     for name, filename in MODEL_FILES.items():
-        path = os.path.join(BASE_DIR, filename)
+        # Check models/ directory first, fallback to BASE_DIR
+        path = os.path.join(MODELS_DIR, filename)
+        if not os.path.exists(path):
+            path = os.path.join(BASE_DIR, filename)
+
         if os.path.exists(path):
             try:
                 models[name] = tf.keras.models.load_model(path, compile=False)
@@ -59,10 +65,11 @@ def load_word_index():
 
 @st.cache_data
 def load_results():
-    path = os.path.join(BASE_DIR, "model_results.json")
-    if os.path.exists(path):
-        with open(path) as f:
-            return json.load(f)
+    for folder in [MODELS_DIR, BASE_DIR]:
+        path = os.path.join(folder, "model_results.json")
+        if os.path.exists(path):
+            with open(path) as f:
+                return json.load(f)
     return {}
 
 
@@ -114,7 +121,10 @@ for name, info in MODEL_INFO.items():
 
 
 # ── Comparison chart ──────────────────────────────────────────────────────────
-plot_path = os.path.join(BASE_DIR, "comparison_plot.png")
+plot_path = os.path.join(ASSETS_DIR, "comparison_plot.png")
+if not os.path.exists(plot_path):
+    plot_path = os.path.join(BASE_DIR, "comparison_plot.png")
+
 if os.path.exists(plot_path):
     with st.expander("📈 Training comparison chart", expanded=False):
         st.image(plot_path, width='stretch')
@@ -160,8 +170,8 @@ if analyze:
 
                 if models[name] is None:
                     st.error(
-                        f"`{MODEL_FILES[name]}` not found.\n\n"
-                        f"Run `python train{'_' + name.lower() if name != 'SimpleRNN' else ''}.py` first."
+                        f"`{MODEL_FILES[name]}` not found in `models/`.\n\n"
+                        f"Run `python scripts/train{'_' + name.lower() if name != 'SimpleRNN' else ''}.py` first."
                     )
                 else:
                     prob       = float(models[name].predict(processed, verbose=0)[0][0])

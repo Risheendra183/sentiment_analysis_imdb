@@ -7,9 +7,16 @@ import json
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Configuration
-VOCAB_SIZE = 10000
-MAX_LENGTH = 200
+# Configuration & Directories
+VOCAB_SIZE   = 10000
+MAX_LENGTH   = 200
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+MODELS_DIR   = os.path.join(PROJECT_ROOT, "models")
+ASSETS_DIR   = os.path.join(PROJECT_ROOT, "assets")
+
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
 # Load dataset
 (X_train, y_train), (X_test, y_test) = imdb.load_data(
@@ -53,7 +60,7 @@ model = tf.keras.Sequential([
         mask_zero=True
     ),
 
-    tf.keras.layers.LSTM(
+    tf.keras.layers.GRU(
         64
     ),
 
@@ -128,7 +135,7 @@ plt.plot(
 plt.title('Loss')
 plt.legend()
 
-save_path = os.path.join(os.path.dirname(__file__), "lstm_sentiment.keras")
+save_path = os.path.join(MODELS_DIR, "gru_sentiment.keras")
 model.save(save_path)
 print(f"Model saved successfully to {save_path}")
 
@@ -140,13 +147,13 @@ test_loss, test_accuracy = model.evaluate(
 print("Test Loss:", test_loss)
 print("Test Accuracy:", test_accuracy)
 
-results_path = os.path.join(os.path.dirname(__file__), "model_results.json")
+results_path = os.path.join(MODELS_DIR, "model_results.json")
 results = {}
 if os.path.exists(results_path):
     with open(results_path) as f:
         results = json.load(f)
 
-results["LSTM"] = {
+results["GRU"] = {
     "test_loss": float(test_loss),
     "test_accuracy": float(test_accuracy)
 }
@@ -156,6 +163,6 @@ with open(results_path, "w") as f:
 
 print("Saved results to model_results.json")
 
-plt.savefig(os.path.join(os.path.dirname(__file__), "lstm_history.png"))
+plt.savefig(os.path.join(ASSETS_DIR, "gru_history.png"))
 plt.close()
 

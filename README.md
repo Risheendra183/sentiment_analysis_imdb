@@ -74,20 +74,33 @@ Dense Output Layer (1 unit, Sigmoid activation)
 
 ## 📁 Repository Structure
 
+The project follows a clean, modular structure:
+
 ```text
-sentiment_analysis_imdb/
-├── app.py                   # Streamlit web application
-├── train.py                 # SimpleRNN training script
-├── train_lstm.py            # LSTM training script
-├── train_gru.py             # GRU training script
-├── evaluate_all.py          # Unified evaluation & comparison plot generator
-├── run_all.bat              # One-click Windows batch runner to train & launch
-├── requirements.txt         # Python dependencies
-├── model_results.json       # Benchmark metrics for app sidebar
-├── rnn_sentiment.keras      # Serialized SimpleRNN model
-├── lstm_sentiment.keras     # Serialized LSTM model
-├── gru_sentiment.keras      # Serialized GRU model
-├── comparison_plot.png      # Side-by-side metric visualizations
+movie_sentiment_analysis/
+├── .devcontainer/           # Dev container configuration
+│   └── devcontainer.json
+├── assets/                  # Plots, figures & training metrics
+│   ├── comparison_plot.png
+│   ├── gru_history.png
+│   └── lstm_history.png
+├── models/                  # Saved .keras model checkpoints & results
+│   ├── gru_sentiment.keras
+│   ├── lstm_sentiment.keras
+│   ├── rnn_sentiment.keras
+│   └── model_results.json
+├── scripts/                 # Training, evaluation & inference scripts
+│   ├── basic_rnn.py         # Foundational RNN scratch forward-pass
+│   ├── evaluate_all.py      # Unified model evaluation & plot generator
+│   ├── predict.py           # CLI inference script
+│   ├── train.py             # SimpleRNN training script
+│   ├── train_gru.py         # GRU training script
+│   └── train_lstm.py        # LSTM training script
+├── .gitignore               # Git ignore rules (pycache, virtual environments)
+├── app.py                   # Streamlit web application (entry point)
+├── requirements.txt         # Python package dependencies
+├── run_all.bat              # One-click Windows runner to retrain & launch app
+├── start_app.bat            # Quick launcher for Streamlit web app
 └── README.md                # Project documentation
 ```
 
@@ -121,37 +134,38 @@ pip install -r requirements.txt
 ```bash
 streamlit run app.py
 ```
-The application will open automatically at `http://localhost:8501`.
+*(or double-click `start_app.bat` on Windows)*. The application will open automatically at `http://localhost:8501`.
 
 ---
 
 ## 🏋️ Training & Evaluation
 
-If you wish to retrain the models from scratch:
+If you wish to retrain any of the models from scratch:
 
 ### Retrain Models
 ```bash
 # 1. Train SimpleRNN
-python train.py
+python scripts/train.py
 
 # 2. Train LSTM
-python train_lstm.py
+python scripts/train_lstm.py
 
 # 3. Train GRU
-python train_gru.py
+python scripts/train_gru.py
 ```
 
 ### Evaluate All Models & Update Benchmark Results
 ```bash
-python evaluate_all.py
+python scripts/evaluate_all.py
 ```
-This script evaluates each `.keras` model on the IMDB test set, updates `model_results.json`, and generates `comparison_plot.png`.
+This script evaluates each `.keras` model in `models/` on the IMDB test set, updates `models/model_results.json`, and generates `assets/comparison_plot.png`.
 
 ### Automated Pipeline (Windows)
-Run `run_all.bat` to clean old checkpoints, train all 3 networks sequentially, evaluate results, and start the Streamlit server:
+Double-click `run_all.bat` or run:
 ```cmd
 run_all.bat
 ```
+This cleans old model checkpoints in `models/`, trains all 3 networks sequentially, updates benchmark metrics and plots, and launches the Streamlit app.
 
 ---
 
@@ -168,4 +182,3 @@ run_all.bat
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
-

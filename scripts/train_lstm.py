@@ -1,13 +1,22 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import json
 
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Configuration
-VOCAB_SIZE = 10000
-MAX_LENGTH = 200
+# Configuration & Directories
+VOCAB_SIZE   = 10000
+MAX_LENGTH   = 200
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+MODELS_DIR   = os.path.join(PROJECT_ROOT, "models")
+ASSETS_DIR   = os.path.join(PROJECT_ROOT, "assets")
+
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
 # Load dataset
 (X_train, y_train), (X_test, y_test) = imdb.load_data(
@@ -51,9 +60,8 @@ model = tf.keras.Sequential([
         mask_zero=True
     ),
 
-    tf.keras.layers.SimpleRNN(
-        64,
-        activation='tanh'
+    tf.keras.layers.LSTM(
+        64
     ),
 
     tf.keras.layers.Dense(
@@ -127,7 +135,9 @@ plt.plot(
 plt.title('Loss')
 plt.legend()
 
-plt.show()
+save_path = os.path.join(MODELS_DIR, "lstm_sentiment.keras")
+model.save(save_path)
+print(f"Model saved successfully to {save_path}")
 
 test_loss, test_accuracy = model.evaluate(
     X_test,
@@ -135,7 +145,24 @@ test_loss, test_accuracy = model.evaluate(
 )
 
 print("Test Loss:", test_loss)
-
 print("Test Accuracy:", test_accuracy)
 
-model.save("rnn_sentiment.keras")
+results_path = os.path.join(MODELS_DIR, "model_results.json")
+results = {}
+if os.path.exists(results_path):
+    with open(results_path) as f:
+        results = json.load(f)
+
+results["LSTM"] = {
+    "test_loss": float(test_loss),
+    "test_accuracy": float(test_accuracy)
+}
+
+with open(results_path, "w") as f:
+    json.dump(results, f, indent=2)
+
+print("Saved results to model_results.json")
+
+plt.savefig(os.path.join(ASSETS_DIR, "lstm_history.png"))
+plt.close()
+

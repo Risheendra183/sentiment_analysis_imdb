@@ -14,9 +14,15 @@ import os
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-VOCAB_SIZE = 10000
-MAX_LENGTH = 200
-BASE_DIR   = os.path.dirname(__file__)
+VOCAB_SIZE   = 10000
+MAX_LENGTH   = 200
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+MODELS_DIR   = os.path.join(PROJECT_ROOT, "models")
+ASSETS_DIR   = os.path.join(PROJECT_ROOT, "assets")
+
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(ASSETS_DIR, exist_ok=True)
 
 MODEL_FILES = {
     "SimpleRNN": "rnn_sentiment.keras",
@@ -37,12 +43,18 @@ X_test = pad_sequences(
 results = {}
 
 for name, filename in MODEL_FILES.items():
-    path = os.path.join(BASE_DIR, filename)
+    # Check models/ folder first, then project root, then script dir
+    path = os.path.join(MODELS_DIR, filename)
+    if not os.path.exists(path):
+        path = os.path.join(PROJECT_ROOT, filename)
+    if not os.path.exists(path):
+        path = os.path.join(SCRIPT_DIR, filename)
+
     if not os.path.exists(path):
         print(f"[{name}] Model not found — skipping. Run the training script first.")
         continue
 
-    print(f"\nEvaluating {name}...")
+    print(f"\nEvaluating {name} from {path}...")
     model = tf.keras.models.load_model(path, compile=False)
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
@@ -55,8 +67,8 @@ for name, filename in MODEL_FILES.items():
     print(f"  Test Accuracy : {test_accuracy:.4f}")
     print(f"  Test Loss     : {test_loss:.4f}")
 
-# Save
-results_path = os.path.join(BASE_DIR, "model_results.json")
+# Save results
+results_path = os.path.join(MODELS_DIR, "model_results.json")
 with open(results_path, "w") as f:
     json.dump(results, f, indent=2)
 print(f"\nSaved → {results_path}")
@@ -98,7 +110,7 @@ if results:
             ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02, f"{loss:.4f}", ha='center', fontweight='bold')
 
         plt.tight_layout()
-        plot_path = os.path.join(BASE_DIR, "comparison_plot.png")
+        plot_path = os.path.join(ASSETS_DIR, "comparison_plot.png")
         plt.savefig(plot_path, dpi=150)
         plt.close()
         print(f"Generated comparison plot → {plot_path}")
