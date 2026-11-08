@@ -1,6 +1,7 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
+import os
 
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -21,10 +22,9 @@ MAX_LENGTH = 200
 
 @st.cache_resource
 def load_model():
-
-    return tf.keras.models.load_model(
-        "rnn_sentiment.keras"
-    )
+    # Resolve path relative to this script so it works both locally and on Streamlit Cloud
+    model_path = os.path.join(os.path.dirname(__file__), "rnn_sentiment.keras")
+    return tf.keras.models.load_model(model_path)
 
 model = load_model()
 
